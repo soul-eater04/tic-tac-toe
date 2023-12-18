@@ -1,3 +1,5 @@
+let turn = 0;
+
 let GameBoard = (function(){
     const cells = Array.from(document.querySelectorAll('.cell'));
     let gameBoard = [['','',''],['','',''],['','','']];
@@ -5,18 +7,19 @@ let GameBoard = (function(){
     for(let i = 0 ; i < 3 ; i++){
         for(let j = 0 ; j < 3 ; j++){
             gameBoard[i][j] = cells[k];
+            gameBoard[i][j].addEventListener('click', (event) => clickedBox(event));
             k++;
         }
     }
-    return {gameBoard};
+    return gameBoard;
 })();
 
-function  getPlayerTurn(turn){
+function  getPlayerTurn(){
     if(turn === 0){
-        return {player: 'X',turn: 1};
+        return {player: 'X',nextTurn: 1};
     }
     else{
-        return {player:'O',turn:0};
+        return {player:'O',nextTurn:0};
     }
 }
 
@@ -26,70 +29,103 @@ function clickedBox(event){
 }
 
 function GameController(box){
-    let turn = 0;
     const currentPlayer = getPlayerTurn(turn).player;
-    turn = getPlayerTurn(turn).turn;
+    turn = getPlayerTurn(turn).nextTurn;
     const currentBox = box;
     currentBox.textContent = currentPlayer;
-    checkForResult();
+    const conclusion = checkForResult();
+    if(conclusion.result === 'HOLD'){
+        return;
+    }
+    if(conclusion.result === 'WIN'){
+        let winner = conclusion.player;
+        console.log(`THE WINNER IS ${winner}`);
+        announceWin(winner);
+    }
+    return turn;
 }
 
-function checkForResult(){
-    const rowCheck = (function(){
-        for(let i = 0 ; i < 3 ; i++){
+function announceWin(winner){
+    let resultDiv = document.querySelector('.result');
+    resultDiv.textContent = `THE WINNER IS ${winner}`;
+    console.log(`THE WINNER IS ${winner}`);
+}
+
+function checkForResult() {
+    let winner = '';
+    const rowCheck = (function() {
+        for (let i = 0; i < 3; i++) {
             if (
-                GameBoard[i][0] === GameBoard[i][1] &&
-                GameBoard[i][1] === GameBoard[i][2] &&
-                GameBoard[i][0] !== null
+                GameBoard[i][0].textContent === GameBoard[i][1].textContent &&
+                GameBoard[i][1].textContent === GameBoard[i][2].textContent &&
+                GameBoard[i][0].textContent !== ''
             ) {
-                return {player: GameBoard[i][j].textContent , win: 1};
-            }
-            else{
-                return {player: 'TIE' , win: 0};
+                winner = GameBoard[i][0].textContent;
+                return { player: GameBoard[i][0].textContent, win: 1 };
             }
         }
+        winner = 'HOLD';
+        return { player: 'HOLD', win: 0 };
     })();
 
     const columnCheck = (function() {
         for (let j = 0; j < 3; j++) {
-          if (
-            GameBoard[0][j] === GameBoard[1][j] &&
-            GameBoard[1][j] === GameBoard[2][j] &&
-            GameBoard[0][j] !== null
-          ) {
-            return { player: GameBoard[0][j].textContent, win: 1 };
-          }
+            if (
+                GameBoard[0][j].textContent === GameBoard[1][j].textContent &&
+                GameBoard[1][j].textContent === GameBoard[2][j].textContent &&
+                GameBoard[0][j].textContent !== ''
+            ) {
+                winner = GameBoard[0][j].textContent;
+                return { player: GameBoard[0][j].textContent, win: 1 };
+            }
         }
-        return { player: 'TIE', win: 0 };
-      })();
-    
-    const diagonalCheck = (function() {
-      if (
-        GameBoard[0][0] === GameBoard[1][1] &&
-        GameBoard[1][1] === GameBoard[2][2] &&
-        GameBoard[0][0] !== null
-      ) {
-        return { player: GameBoard[0][0].textContent, win: 1 };
-      }
-      if (
-        GameBoard[0][2] === GameBoard[1][1] &&
-        GameBoard[1][1] === GameBoard[2][0] &&
-        GameBoard[0][2] !== null
-      ) {
-        return { player: GameBoard[0][2].textContent, win: 1 };
-      }
-      return { player: 'TIE', win: 0 };
+        winner = 'HOLD';
+        return { player: 'HOLD', win: 0 };
     })();
 
-    if(rowCheck.win || columnCheck.win || diagonalCheck.win){
-        return 'WIN';
-    }
-    else{
-        if (rowCheck.player === 'TIE' && columnCheck.player === 'TIE' && diagonalCheck.player === 'TIE') {
-            return 'TIE';
-        } else {
-            return 'HOLD';
+    const diagonalCheck = (function() {
+        if (
+            GameBoard[0][0].textContent === GameBoard[1][1].textContent &&
+            GameBoard[1][1].textContent === GameBoard[2][2].textContent &&
+            GameBoard[0][0].textContent !== ''
+        ) {
+            return { player: GameBoard[0][0].textContent, win: 1 };
         }
+        if (
+            GameBoard[0][2].textContent === GameBoard[1][1].textContent &&
+            GameBoard[1][1].textContent === GameBoard[2][0].textContent &&
+            GameBoard[0][2].textContent !== ''
+        ) {
+            return { player: GameBoard[0][2].textContent, win: 1 };
+        }
+        else{
+            winner = 'HOLD';
+            return { player: 'HOLD', win: 0 };
+        }
+    })();
+
+    if(rowCheck.win){
+        return {result: 'WIN', player: rowCheck.player };
+    }
+    
+    if (columnCheck.win) {
+        return {result: 'WIN', player: columnCheck.player };
+    }
+    
+    if (diagonalCheck.win) {
+        return {result: 'WIN', player: diagonalCheck.player };
+    }
+
+    else {
+        let completed = 'TIE';
+        for(let i = 0 ; i < 3 ; i++){
+            for(let j = 0 ; j < 3 ; j++){
+                if(GameBoard[i][j].textContent === ''){
+                    completed = 'HOLD';
+                }
+            }
+        }
+        return {result: completed , player: 'NONE'};
     }
 }
 
