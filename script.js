@@ -25,6 +25,9 @@ function  getPlayerTurn(){
 
 function clickedBox(event){
     let box = event.target;
+    if(box.textContent !== ''){
+        return;
+    }
     GameController(box);
 }
 
@@ -41,6 +44,9 @@ function GameController(box){
         let winner = conclusion.player;
         console.log(`THE WINNER IS ${winner}`);
         announceWin(winner);
+    }
+    if(conclusion.result === 'TIE'){
+        announceWin(conclusion.player);
     }
     return turn;
 }
