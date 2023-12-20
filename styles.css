@@ -6,6 +6,7 @@ body,html{
     justify-content: center;
     align-items: center;
     background-color:aliceblue;
+    flex-direction: column;
 }
 
 .board{
@@ -18,6 +19,11 @@ body,html{
 
 .cell{
     background-color: lightcyan;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 100px;
+    
 }
 
 .cell:hover{
